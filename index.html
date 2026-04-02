@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Easter Find the Differences</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      text-align: center;
+    }
+    .game-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .image-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      user-select: none;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    .spot {
+      position: absolute;
+      cursor: crosshair;
+      border: 2px solid transparent;
+      border-radius: 50%;
+    }
+    .spot:hover {
+      border-color: rgba(255, 255, 0, 0.5);
+      background: rgba(255, 255, 0, 0.1);
+    }
+    .spot.found {
+      border-color: rgba(0, 255, 0, 0.8);
+      background: rgba(0, 255, 0, 0.2);
+    }
+    .timer {
+      margin: 15px 0;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Easter – Find 7 Differences</h1>
+  <p>Click on each difference in either image.</p>
+  <div class="timer">Time: <span id="seconds">0</span> seconds</div>
+
+  <div class="game-container">
+    <!-- LEFT IMAGE -->
+    <div class="image-wrapper">
+      <img
+        id="img-left"
+        src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20left.png?raw=true"
+        alt="Left image"
+      />
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="image-wrapper">
+      <img
+        id="img-right"
+        src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20right.png?raw=true"
+        alt="Right image"
+      />
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <p id="result-text">You found all 7 differences!</p>
+    <p id="result-time"></p>
+    <p>
+      <a id="mailto-link" href="">Send result by email</a>
+    </p>
+  </div>
+
+  <script>
+    // --- CONFIGURATION ---
+    const TOTAL_DIFFERENCES = 7;
+    const TARGET_EMAIL = "sevibes@proximus.com";
+
+    // --- STATE ---
+    let foundCount = 0;
+    let startTime = Date.now();
+    let timerInterval;
+
+    // --- DIFFERENCE HOTSPOTS ---
+    // These are transparent circles over the left/right images.
+    // You can adjust:
+    //   - "side": "left" or "right"
+    //   - "x", "y": center position (in % of image width/height)
+    //   - "size": diameter in % of image
+    const spots = [
+      { side: "left", x: 15, y: 30, size: 8 },
+      { side: "right", x: 72, y: 25, size: 8 },
+      { side: "left", x: 40, y: 55, size: 8 },
+      { side: "right", x: 60, y: 70, size: 8 },
+      { side: "left", x: 75, y: 40, size: 8 },
+      { side: "right", x: 25, y: 60, size: 8 },
+      { side: "left", x: 55, y: 20, size: 8 },
+    ];
+
+    // --- HTML ELEMENTS ---
+    const timerSpan = document.getElementById("seconds");
+    const resultDiv = document.getElementById("result");
+    const resultText = document.getElementById("result-text");
+    const resultTime = document.getElementById("result-time");
+    const mailtoLink = document.getElementById("mailto-link");
+
+    // --- START TIMER ---
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      timerSpan.textContent = elapsed;
+    }, 100);
+
+    // --- CREATE HOTSPOTS ---
+    function createHotspots() {
+      const containerLeft = document.getElementById("img-left").parentElement;
+      const containerRight = document.getElementById("img-right").parentElement;
+
+      spots.forEach((spot, idx) => {
+        const el = document.createElement("div");
+        el.className = "spot";
+        el.dataset.index = idx;
+
+        el.style.left = `${spot.x}%`;
+        el.style.top = `${spot.y}%`;
+        el.style.width = `${spot.size}%`;
+        el.style.height = `${spot.size}%`;
+
+        el.addEventListener("click", (e) => {
+          if (el.classList.contains("found")) return;
+
+          foundCount++;
+          el.classList.add("found");
+
+          if (foundCount >= TOTAL_DIFFERENCES) {
+            endGame();
+          }
+        });
+
+        if (spot.side === "left") {
+          containerLeft.appendChild(el);
+        } else {
+          containerRight.appendChild(el);
+        }
+      });
+    }
+
+    // --- END GAME ---
+    function endGame() {
+      clearInterval(timerInterval);
+
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      resultTime.textContent = `Time: ${elapsedSeconds} seconds`;
+      resultDiv.style.display = "block";
+
+      const subject = `Easter Spot-the-Difference Result`;
+      const body = `I found all 7 differences in ${elapsedSeconds} seconds.\nCompleted on: ${dateStr}.`;
+
+      mailtoLink.href = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
+    }
+
+    // --- INIT ---
+    window.addEventListener("load", () => {
+      createHotspots();
+    });
+  </script>
+</body>
+</html>
