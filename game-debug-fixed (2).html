@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find the 7 Differences</title>
+  <style>
+    :root {
+      --bg: #f6f4fb;
+      --surface: #ffffff;
+      --surface-2: #f0ebfb;
+      --text: #21142f;
+      --muted: #6e6480;
+      --primary: #5c2d91;
+      --primary-2: #7b4cc9;
+      --accent: #00a0df;
+      --success: #167c43;
+      --danger: #c22d56;
+      --ring: rgba(92, 45, 145, 0.2);
+      --shadow: 0 18px 40px rgba(54, 33, 92, 0.12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(123, 76, 201, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(0, 160, 223, 0.12), transparent 22%),
+        linear-gradient(180deg, #faf8ff 0%, var(--bg) 100%);
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(135deg, rgba(92, 45, 145, 0.95), rgba(123, 76, 201, 0.92));
+      color: white; border-radius: 32px; padding: 28px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ""; position: absolute; right: -30px; top: -30px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.08);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 3vw, 3.2rem); line-height: 1.05; }
+    .hero p { margin: 0; max-width: 70ch; color: rgba(255,255,255,0.88); font-size: 1.02rem; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 24px; }
+    .game-panel { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+    .status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .stat { background: var(--surface-2); border-radius: 18px; padding: 14px 16px; }
+    .stat .label { display: block; color: var(--muted); font-size: 0.86rem; margin-bottom: 6px; }
+    .stat .value { font-size: 1.45rem; font-weight: 700; }
+
+    /* Scene: relative container so hit buttons can be positioned absolutely */
+    .scene {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(92,45,145,0.08);
+      background: #ebe5fb;
+      /* We need a known aspect ratio so percentage positioning is predictable.
+         The image is 2:1 (two side-by-side square-ish panels). Adjust if needed. */
+    }
+    .scene img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+
+    /* Hit buttons: circles enforced via aspect-ratio + width only */
+    .hit {
+      position: absolute;
+      border: 0;
+      background: transparent;
+      outline: none;
+      box-shadow: none;
+      cursor: pointer;
+      /* Force circle: use width % and aspect-ratio 1/1 so height matches width
+         regardless of the container's own aspect ratio */
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      -webkit-tap-highlight-color: transparent;
+      z-index: 2;
+    }
+    .hit:hover {
+      background: rgba(255, 255, 255, 0.35);
+      outline: 3px solid rgba(255,255,255,0.7);
+    }
+    .hit.found { pointer-events: none; opacity: 0; }
+
+    /* Markers: circles, centred on click point */
+    .marker-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .marker {
+      position: absolute;
+      width: 6%;          /* percentage of scene width → stays proportional */
+      aspect-ratio: 1 / 1;
+      margin-left: -3%;
+      margin-top: 0;      /* top offset is adjusted in JS using translateY */
+      border: 4px solid #ff4f6f;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.92);
+      animation: pop .35s ease;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+    @keyframes pop { from { transform: translateY(-50%) scale(0.3); opacity: 0; } to { transform: translateY(-50%) scale(1); opacity: 1; } }
+
+    .progress { height: 14px; background: #e5def6; border-radius: 999px; overflow: hidden; margin: 16px 0 10px; }
+    .progress > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #30c5ff, var(--primary-2)); transition: width .25s ease; border-radius: inherit; }
+    .hint, .microcopy { color: var(--muted); font-size: 0.94rem; line-height: 1.5; }
+    .checklist { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 16px; }
+    .dot { height: 42px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-weight: 700; color: var(--muted); border: 1px solid rgba(92,45,145,0.08); }
+    .dot.found { background: rgba(22,124,67,0.12); color: var(--success); border-color: rgba(22,124,67,0.18); }
+    .cta-box { margin-top: 18px; padding: 18px; border-radius: 18px; background: linear-gradient(180deg, #f9f6ff 0%, #f1ebfe 100%); border: 1px solid rgba(92,45,145,0.08); }
+    .raffle { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(92,45,145,0.1); }
+    .raffle.visible { display: block; }
+    label { display: block; margin: 0 0 6px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(92,45,145,0.16); background: white; font: inherit; margin-bottom: 14px; }
+    input:focus, textarea:focus { outline: 3px solid var(--ring); border-color: var(--primary); }
+    .consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; color: var(--muted); font-size: 0.94rem; }
+    .consent input { width: 18px; height: 18px; margin: 3px 0 0; padding: 0; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    button, .mail-link {
+      appearance: none; border: 0; border-radius: 999px; padding: 14px 20px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    button:hover, .mail-link:hover { transform: translateY(-1px); }
+    .primary { background: linear-gradient(90deg, var(--primary), var(--primary-2)); color: white; }
+    .secondary { background: #ece4fb; color: var(--primary); }
+    .success-box, .warning-box {
+      border-radius: 16px; padding: 14px 16px; font-size: 0.95rem; line-height: 1.45; margin-top: 14px; display: none;
+    }
+    .success-box { background: rgba(22,124,67,0.1); color: var(--success); }
+    .warning-box { background: rgba(194,45,86,0.1); color: var(--danger); }
+    .success-box.visible, .warning-box.visible { display: block; }
+    @media (max-width: 980px) {
+      .status-bar { grid-template-columns: 1fr; }
+      .checklist { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Find the 7 Differences</h1>
+      <p>Spot all seven hidden changes in the Proximus-style illustration. Once you find them all, the raffle form unlocks so the contestant can enter the draw. <span id="timerDisplay">Time: 0:00</span></p>
+    </section>
+
+    <section class="layout">
+      <div class="game-panel">
+        <div class="status-bar">
+          <div class="stat"><span class="label">Differences found</span><span class="value" id="foundCount">0 / 7</span></div>
+          <div class="stat"><span class="label">Correct clicks</span><span class="value" id="clickCount">0</span></div>
+          <div class="stat"><span class="label">Time</span><span class="value" id="timerValue">0:00</span></div>
+        </div>
+
+        <!-- FIX: hit buttons and marker layer are now real HTML, not a %PLACEHOLDER% -->
+        <div class="scene" id="scene">
+          <img id="sceneImg" src="https://raw.githubusercontent.com/MatthiasV87/EasterPxs/b06bf3c358c1bd9779c5fc49dab56d3119e87955/generated-image%20(2).png" alt="Find the 7 differences illustration with two side-by-side Proximus-style scenes" />
+          <!-- Hit buttons injected by JS after image loads so we know the rendered size -->
+          <div class="marker-layer" id="markerLayer"></div>
+        </div>
+
+        <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+        <p class="hint" id="gameMessage">Tip: when a difference is found, one circle appears on the left image and one on the right image. Hover to see clickable areas.</p>
+
+        <div class="checklist" aria-label="Progress tracker">
+          <div class="dot" id="dot1">1</div>
+          <div class="dot" id="dot2">2</div>
+          <div class="dot" id="dot3">3</div>
+          <div class="dot" id="dot4">4</div>
+          <div class="dot" id="dot5">5</div>
+          <div class="dot" id="dot6">6</div>
+          <div class="dot" id="dot7">7</div>
+        </div>
+
+        <!-- FIX: raffle section kept separate from cta-box so .visible toggle works cleanly -->
+        <div class="raffle" id="raffleBox">
+          <h2 class="side-title">Raffle entry</h2>
+          <p class="microcopy">After all seven differences are found, the contestant can submit their details. This page prepares an email draft to <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="750610031c1710063505071a0d1c1800065b161a18">[email&#160;protected]</a>.</p>
+
+          <form id="raffleForm">
+            <label for="fullName">Full name</label>
+            <input id="fullName" name="fullName" type="text" required />
+
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" required />
+
+            <label for="team">Team or department</label>
+            <input id="team" name="team" type="text" />
+
+            <label for="tieBreaker">Optional tie-breaker</label>
+            <textarea id="tieBreaker" name="tieBreaker" rows="3" placeholder="What was the trickiest difference?"></textarea>
+
+            <label class="consent"><input id="consent" type="checkbox" required /><span>I confirm I agree that my details may be used for this raffle administration.</span></label>
+
+            <div class="actions">
+              <button type="submit" class="primary">Send raffle email</button>
+            </div>
+          </form>
+
+          <!-- FIX: success/warning shown only after form submit, not at game completion -->
+          <div class="success-box" id="successBox">✓ Email draft opened with your entry and solve time!</div>
+          <div class="warning-box" id="warningBox">Please fill all required fields.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Hotspot data: x/y are percentages of the scene container.
+    // width is a percentage of the scene width.
+    // Both left and right coords share the same y and width.
+    const hotspots = [
+      { id: 1, leftX: 14.5, rightX: 64.2, y: 43.7, width: 5.8 },
+      { id: 2, leftX: 33.1, rightX: 82.1, y: 45.8, width: 4.0 },
+      { id: 3, leftX: 43.9, rightX: 93.3, y: 28.2, width: 4.0 },
+      { id: 4, leftX:  9.4, rightX: 59.2, y: 76.8, width: 4.0 },
+      { id: 5, leftX: 14.2, rightX: 66.4, y: 72.6, width: 4.0 },
+      { id: 6, leftX: 34.1, rightX: 83.4, y: 66.9, width: 5.0 },
+      { id: 7, leftX:  4.2, rightX: 55.0, y: 51.1, width: 5.0 },
+    ];
+
+    const total = 7;
+    const found = new Set();
+    let correctClicks = 0;
+    let startTime = 0;
+    let timerRunning = false;
+    let elapsed = 0;
+    let gameComplete = false;
+    let timerInterval = null;
+
+    const foundCountEl  = document.getElementById('foundCount');
+    const clickCountEl  = document.getElementById('clickCount');
+    const progressBar   = document.getElementById('progressBar');
+    const gameMessage   = document.getElementById('gameMessage');
+    const raffleBox     = document.getElementById('raffleBox');
+    const raffleForm    = document.getElementById('raffleForm');
+    const successBox    = document.getElementById('successBox');
+    const warningBox    = document.getElementById('warningBox');
+    const scene         = document.getElementById('scene');
+    const markerLayer   = document.getElementById('markerLayer');
+    const timerDisplay  = document.getElementById('timerDisplay');
+    const timerValue    = document.getElementById('timerValue');
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+      const timeStr = formatTime(elapsed);
+      if (timerDisplay) timerDisplay.textContent = `Time: ${timeStr}`;
+      if (timerValue)   timerValue.textContent   = timeStr;
+    }
+
+    function startTimer() {
+      if (timerRunning) return;
+      startTime = Date.now() - elapsed;
+      timerRunning = true;
+      timerInterval = setInterval(() => {
+        elapsed = Date.now() - startTime;
+        updateTimerDisplay();
+      }, 250);
+    }
+
+    // FIX: stopTimer now clears the interval so it truly stops
+    function stopTimer() {
+      if (!timerRunning) return;
+      timerRunning = false;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      elapsed = Date.now() - startTime;
+      updateTimerDisplay();
+    }
+
+    function updateUi() {
+      foundCountEl.textContent = `${found.size} / ${total}`;
+      clickCountEl.textContent = String(correctClicks);
+      progressBar.style.width  = `${(found.size / total) * 100}%`;
+      // FIX: removed reference to non-existent raffleState element
+      raffleBox.classList.toggle('visible', found.size === total);
+
+      if (found.size === total && !gameComplete) {
+        gameComplete = true;
+        stopTimer();
+        gameMessage.textContent = `Great job — all 7 differences found in ${formatTime(elapsed)}! Fill in the form below to enter the raffle.`;
+        // FIX: do NOT show successBox here — it belongs to the mail step only
+      }
+    }
+
+    // ── Circle markers ────────────────────────────────────────────────────────
+    // Uses % positioning so markers scale with the scene.
+    // transform: translateY(-50%) is baked into the CSS animation keyframes.
+
+    function createMarker(xPercent, yPercent) {
+      const marker = document.createElement('div');
+      marker.className = 'marker';
+      marker.style.left = `${xPercent}%`;
+      marker.style.top  = `${yPercent}%`;
+      markerLayer.appendChild(marker);
+    }
+
+    // ── Hit-button injection ──────────────────────────────────────────────────
+    // FIX: buttons are built in JS (not a %PLACEHOLDER%) so they always exist.
+    // FIX: width is a % of scene width; aspect-ratio:1/1 in CSS guarantees circles.
+
+    function buildHitButtons() {
+      hotspots.forEach(hs => {
+        [
+          { x: hs.leftX,  side: 'left'  },
+          { x: hs.rightX, side: 'right' },
+        ].forEach(({ x, side }) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'hit';
+          btn.dataset.id    = String(hs.id);
+          btn.dataset.leftX = String(hs.leftX);
+          btn.dataset.rightX= String(hs.rightX);
+          btn.dataset.y     = String(hs.y);
+          btn.dataset.side  = side;
+          btn.setAttribute('aria-label', `Difference ${hs.id}`);
+
+          // Position: centred on (x%, y%)
+          btn.style.left  = `${x}%`;
+          btn.style.top   = `${hs.y}%`;
+          btn.style.width = `${hs.width}%`;
+          // Height is driven by aspect-ratio:1/1 in CSS → always a circle
+
+          btn.addEventListener('click', () => {
+            startTimer();
+            const id = btn.dataset.id;
+            if (found.has(id)) return;
+            found.add(id);
+            correctClicks += 1;
+
+            // Hide BOTH buttons for this hotspot
+            scene.querySelectorAll(`.hit[data-id="${id}"]`).forEach(b => {
+              b.classList.add('found');
+              b.disabled = true;
+            });
+
+            // Draw markers on both left and right positions
+            createMarker(hs.leftX,  hs.y);
+            createMarker(hs.rightX, hs.y);
+
+            document.getElementById(`dot${id}`).classList.add('found');
+            document.getElementById(`dot${id}`).textContent = '✓';
+            updateUi();
+          });
+
+          scene.appendChild(btn);
+        });
+      });
+    }
+
+    // Build buttons once the image has loaded (so layout is stable)
+    const sceneImg = document.getElementById('sceneImg');
+    if (sceneImg.complete) {
+      buildHitButtons();
+    } else {
+      sceneImg.addEventListener('load', buildHitButtons);
+    }
+
+    // ── Form submit ───────────────────────────────────────────────────────────
+
+    raffleForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      successBox.classList.remove('visible');
+      warningBox.classList.remove('visible');
+
+      if (found.size !== total) return;
+
+      const name       = document.getElementById('fullName').value.trim();
+      const emailVal   = document.getElementById('email').value.trim();
+      const team       = document.getElementById('team').value.trim();
+      const tieBreaker = document.getElementById('tieBreaker').value.trim();
+      const consent    = document.getElementById('consent').checked;
+
+      if (!name || !emailVal || !consent) {
+        warningBox.classList.add('visible');
+        return;
+      }
+
+      // FIX: stop timer when mail is triggered (in case game was just completed)
+      stopTimer();
+
+      const timeStr = formatTime(elapsed);
+      const subject = 'Raffle entry – Find the 7 Differences';
+      const body =
+`Contestant raffle entry
+
+Name: ${name}
+Email: ${emailVal}
+Team/Department: ${team || '-'}
+Time taken: ${timeStr}
+Differences found: 7/7
+Tie-breaker: ${tieBreaker || '-'}
+Consent confirmed: Yes`;
+
+      window.location.href =
+        `mailto:sevibes@proximus.com?subject=${encodeURIComponent(subje
