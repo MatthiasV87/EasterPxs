@@ -1,188 +1,406 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Easter Find the Differences</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easter Find the 7 Differences</title>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      min-height: 100vh;
+    }
+    h1 {
       text-align: center;
+      color: #8B4513;
+      margin-bottom: 10px;
+      font-size: clamp(1.8em, 5vw, 3em);
+    }
+    .subtitle {
+      text-align: center;
+      color: #D2691E;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .stat {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .tip {
+      background: rgba(255,255,255,0.9);
+      border-left: 5px solid #FFA500;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      font-style: italic;
     }
     .game-container {
       display: flex;
-      justify-content: center;
       gap: 20px;
+      justify-content: center;
       flex-wrap: wrap;
+      margin-bottom: 30px;
     }
     .image-wrapper {
       position: relative;
-      display: inline-block;
-      max-width: 100%;
-      user-select: none;
+      width: 48%;
+      max-width: 500px;
+      aspect-ratio: 1;
     }
     img {
-      display: block;
-      max-width: 100%;
-      height: auto;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
     .spot {
       position: absolute;
-      cursor: crosshair;
-      border: 2px solid transparent;
+      border: 3px solid transparent;
       border-radius: 50%;
+      cursor: crosshair;
+      transition: all 0.2s ease;
+      z-index: 10;
     }
-    .spot:hover {
-      border-color: rgba(255, 255, 0, 0.5);
-      background: rgba(255, 255, 0, 0.1);
+    .spot:hover { 
+      border-color: #FFD700;
+      background: rgba(255,215,0,0.2);
+      transform: scale(1.1);
     }
     .spot.found {
-      border-color: rgba(0, 255, 0, 0.8);
-      background: rgba(0, 255, 0, 0.2);
+      border-color: #32CD32;
+      background: rgba(50,205,50,0.3);
+      animation: pulse 0.6s ease-out;
     }
-    .timer {
-      margin: 15px 0;
-      font-size: 1.4em;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .numbers {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .number {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: bold;
+      font-size: 1.2em;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
     }
-    .result {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background: #f9f9f9;
+    .number.found {
+      background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+      transform: scale(1.1);
+    }
+    .raffle-section {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      max-width: 600px;
+      margin: 0 auto;
       display: none;
+    }
+    .raffle-section h2 {
+      color: #8B4513;
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label { 
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #555;
+    }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #FFA500;
+    }
+    .send-btn {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,107,107,0.4);
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #c3e6cb;
+      margin-top: 20px;
+    }
+    @media (max-width: 768px) {
+      .game-container { flex-direction: column; align-items: center; }
+      .image-wrapper { width: 95%; }
     }
   </style>
 </head>
 <body>
-  <h1>Easter – Find 7 Differences</h1>
-  <p>Click on each difference in either image.</p>
-  <div class="timer">Time: <span id="seconds">0</span> seconds</div>
+  <h1>🐣 Easter Find the 7 Differences 🐣</h1>
+  <p class="subtitle">Spot all seven hidden changes. Once found, unlock the raffle entry!</p>
 
-  <div class="game-container">
-    <!-- LEFT IMAGE -->
-    <div class="image-wrapper">
-      <img
-        id="img-left"
-        src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20left.png?raw=true"
-        alt="Left image"
-      />
+  <div class="stats">
+    <div class="stat">
+      <div style="font-size: 2em; color: #FF6B6B;">0</div>
+      <div>Differences found / 7</div>
     </div>
-
-    <!-- RIGHT IMAGE -->
-    <div class="image-wrapper">
-      <img
-        id="img-right"
-        src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20right.png?raw=true"
-        alt="Right image"
-      />
+    <div class="stat">
+      <div style="font-size: 2em; color: #4ECDC4;">0</div>
+      <div>Correct clicks</div>
+    </div>
+    <div class="stat">
+      <div style="font-size: 2em; color: #45B7D1;" id="timer">0:00</div>
+      <div>Time</div>
     </div>
   </div>
 
-  <div class="result" id="result">
-    <p id="result-text">You found all 7 differences!</p>
-    <p id="result-time"></p>
-    <p>
-      <a id="mailto-link" href="">Send result by email</a>
-    </p>
+  <div class="tip">
+    💡 Tip: Click on the differences you spot. Each correct find marks both sides of the image!
+  </div>
+
+  <div class="game-container">
+    <div class="image-wrapper">
+      <img id="img-left" src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20left.png?raw=true" alt="Left">
+    </div>
+    <div class="image-wrapper">
+      <img id="img-right" src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20right.png?raw=true" alt="Right">
+    </div>
+  </div>
+
+  <div class="numbers" id="numbers">
+    <!-- Numbers 1-7 generated by JS -->
+  </div>
+
+  <div class="raffle-section" id="raffle">
+    <h2>🎉 All seven found! Enter the raffle</h2>
+    <p>This page will open an email draft to <strong>sevibes@proximus.com</strong> with your solve time.</p>
+    
+    <div class="form-group">
+      <label for="name">Your name *</label>
+      <input type="text" id="name" required>
+    </div>
+    <div class="form-group">
+      <label for="email">Your email *</label>
+      <input type="email" id="email" required>
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone (optional)</label>
+      <input type="text" id="phone">
+    </div>
+    
+    <button class="send-btn" onclick="sendRaffleEntry()">
+      📧 Send Easter Raffle Entry
+    </button>
+    
+    <div class="success" id="success" style="display: none;">
+      ✓ Email draft opened with your entry and solve time!
+    </div>
   </div>
 
   <script>
-    // --- CONFIGURATION ---
-    const TOTAL_DIFFERENCES = 7;
-    const TARGET_EMAIL = "sevibes@proximus.com";
+    // Game state
+    let gameState = {
+      found: new Set(),
+      total: 7,
+      startTime: null,
+      timerInterval: null,
+      elapsed: 0
+    };
 
-    // --- STATE ---
-    let foundCount = 0;
-    let startTime = Date.now();
-    let timerInterval;
+    const TARGET_EMAIL = 'sevibes@proximus.com';
 
-    // --- DIFFERENCE HOTSPOTS ---
-    // These are transparent circles over the left/right images.
-    // You can adjust:
-    //   - "side": "left" or "right"
-    //   - "x", "y": center position (in % of image width/height)
-    //   - "size": diameter in % of image
-    const spots = [
-      { side: "left", x: 15, y: 30, size: 8 },
-      { side: "right", x: 72, y: 25, size: 8 },
-      { side: "left", x: 40, y: 55, size: 8 },
-      { side: "right", x: 60, y: 70, size: 8 },
-      { side: "left", x: 75, y: 40, size: 8 },
-      { side: "right", x: 25, y: 60, size: 8 },
-      { side: "left", x: 55, y: 20, size: 8 },
+    // Difference hotspots - ADJUST THESE TO YOUR ACTUAL DIFFERENCES
+    const differences = [
+      { left: {x:15, y:30, size:8}, right: {x:15, y:30, size:8}, num: 1 },
+      { left: {x:72, y:25, size:8}, right: {x:72, y:25, size:8}, num: 2 },
+      { left: {x:40, y:55, size:8}, right: {x:40, y:55, size:8}, num: 3 },
+      { left: {x:60, y:70, size:8}, right: {x:60, y:70, size:8}, num: 4 },
+      { left: {x:75, y:40, size:8}, right: {x:75, y:40, size:8}, num: 5 },
+      { left: {x:25, y:60, size:8}, right: {x:25, y:60, size:8}, num: 6 },
+      { left: {x:55, y:20, size:8}, right: {x:55, y:20, size:8}, num: 7 }
     ];
 
-    // --- HTML ELEMENTS ---
-    const timerSpan = document.getElementById("seconds");
-    const resultDiv = document.getElementById("result");
-    const resultText = document.getElementById("result-text");
-    const resultTime = document.getElementById("result-time");
-    const mailtoLink = document.getElementById("mailto-link");
+    function init() {
+      createHotspots();
+      createNumbers();
+      startTimer();
+    }
 
-    // --- START TIMER ---
-    timerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      timerSpan.textContent = elapsed;
-    }, 100);
-
-    // --- CREATE HOTSPOTS ---
     function createHotspots() {
-      const containerLeft = document.getElementById("img-left").parentElement;
-      const containerRight = document.getElementById("img-right").parentElement;
-
-      spots.forEach((spot, idx) => {
-        const el = document.createElement("div");
-        el.className = "spot";
-        el.dataset.index = idx;
-
-        el.style.left = `${spot.x}%`;
-        el.style.top = `${spot.y}%`;
-        el.style.width = `${spot.size}%`;
-        el.style.height = `${spot.size}%`;
-
-        el.addEventListener("click", (e) => {
-          if (el.classList.contains("found")) return;
-
-          foundCount++;
-          el.classList.add("found");
-
-          if (foundCount >= TOTAL_DIFFERENCES) {
-            endGame();
-          }
+      const leftImg = document.getElementById('img-left');
+      const rightImg = document.getElementById('img-right');
+      
+      differences.forEach((diff, i) => {
+        // Left spots
+        const leftSpot = document.createElement('div');
+        leftSpot.className = 'spot';
+        leftSpot.dataset.id = i;
+        Object.assign(leftSpot.style, {
+          left: `${diff.left.x}%`,
+          top: `${diff.left.y}%`,
+          width: `${diff.left.size}%`,
+          height: `${diff.left.size}%`
         });
+        leftImg.parentNode.appendChild(leftSpot);
 
-        if (spot.side === "left") {
-          containerLeft.appendChild(el);
-        } else {
-          containerRight.appendChild(el);
-        }
+        // Right spots
+        const rightSpot = document.createElement('div');
+        rightSpot.className = 'spot';
+        rightSpot.dataset.id = i;
+        Object.assign(rightSpot.style, {
+          left: `${diff.right.x}%`,
+          top: `${diff.right.y}%`,
+          width: `${diff.right.size}%`,
+          height: `${diff.right.size}%`
+        });
+        rightImg.parentNode.appendChild(rightSpot);
+
+        // Click handler
+        [leftSpot, rightSpot].forEach(spot => {
+          spot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            markFound(i);
+          });
+        });
       });
     }
 
-    // --- END GAME ---
-    function endGame() {
-      clearInterval(timerInterval);
-
-      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-      const now = new Date();
-      const dateStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
-
-      resultTime.textContent = `Time: ${elapsedSeconds} seconds`;
-      resultDiv.style.display = "block";
-
-      const subject = `Easter Spot-the-Difference Result`;
-      const body = `I found all 7 differences in ${elapsedSeconds} seconds.\nCompleted on: ${dateStr}.`;
-
-      mailtoLink.href = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
+    function createNumbers() {
+      const container = document.getElementById('numbers');
+      for(let i = 1; i <= 7; i++) {
+        const num = document.createElement('div');
+        num.className = 'number';
+        num.textContent = i;
+        num.dataset.id = i-1;
+        num.addEventListener('click', () => markFound(i-1));
+        container.appendChild(num);
+      }
     }
 
-    // --- INIT ---
-    window.addEventListener("load", () => {
-      createHotspots();
-    });
+    function markFound(id) {
+      if (gameState.found.has(id)) return;
+
+      gameState.found.add(id);
+      const count = gameState.found.size;
+
+      // Mark spots
+      document.querySelectorAll(`.spot[data-id="${id}"]`).forEach(spot => {
+        spot.classList.add('found');
+      });
+
+      // Mark number
+      document.querySelector(`.number[data-id="${id}"]`).classList.add('found');
+
+      // Update stats
+      document.querySelector('.stat div:first-child').textContent = count;
+      
+      if (count === gameState.total) {
+        endGame();
+      }
+    }
+
+    function startTimer() {
+      gameState.startTime = Date.now();
+      gameState.timerInterval = setInterval(updateTimer, 100);
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById('timer').textContent = 
+        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function endGame() {
+      clearInterval(gameState.timerInterval);
+      document.getElementById('raffle').style.display = 'block';
+      document.querySelector('.subtitle').textContent = 
+        `🎉 All differences found in ${document.getElementById('timer').textContent}!`;
+    }
+
+    function sendRaffleEntry() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      
+      if (!name || !email) {
+        alert('Please fill name and email');
+        return;
+      }
+
+      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+      const now = new Date().toLocaleString('nl-BE', {timeZone: 'Europe/Brussels'});
+      
+      const subject = `Easter Raffle Entry - ${elapsed}s`;
+      const body = `Easter Spot-the-Difference Raffle Entry
+
+Name: ${name}
+Email: ${email}
+${phone ? `Phone: ${phone}` : ''}
+Solve time: ${elapsed} seconds (${document.getElementById('timer').textContent})
+Completed: ${now}
+
+Great job finding all 7 differences!`;
+
+      const mailto = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+      
+      document.getElementById('success').style.display = 'block';
+    }
+
+    // Start when images load
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>
