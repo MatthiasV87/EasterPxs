@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find the 7 Differences</title>
+  <style>
+    :root {
+      --bg: #f6f4fb;
+      --surface: #ffffff;
+      --surface-2: #f0ebfb;
+      --text: #21142f;
+      --muted: #6e6480;
+      --primary: #5c2d91;
+      --primary-2: #7b4cc9;
+      --accent: #00a0df;
+      --success: #167c43;
+      --danger: #c22d56;
+      --ring: rgba(92, 45, 145, 0.2);
+      --shadow: 0 18px 40px rgba(54, 33, 92, 0.12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(123, 76, 201, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(0, 160, 223, 0.12), transparent 22%),
+        linear-gradient(180deg, #faf8ff 0%, var(--bg) 100%);
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(135deg, rgba(92, 45, 145, 0.95), rgba(123, 76, 201, 0.92));
+      color: white; border-radius: 32px; padding: 28px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ""; position: absolute; right: -30px; top: -30px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.08);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 3vw, 3.2rem); line-height: 1.05; }
+    .hero p { margin: 0; max-width: 70ch; color: rgba(255,255,255,0.88); font-size: 1.02rem; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 24px; }
+    .game-panel { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+    .status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .stat { background: var(--surface-2); border-radius: 18px; padding: 14px 16px; }
+    .stat .label { display: block; color: var(--muted); font-size: 0.86rem; margin-bottom: 6px; }
+    .stat .value { font-size: 1.45rem; font-weight: 700; }
+    .scene { position: relative; border-radius: 22px; overflow: hidden; border: 1px solid rgba(92,45,145,0.08); background: #ebe5fb; }
+    .scene img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+    .hit-layer { position: absolute; inset: 0; z-index: 2; }
+    .marker-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .hit {
+      position: absolute; border: 0; background: transparent; outline: none; box-shadow: none; cursor: pointer;
+      border-radius: 999px; -webkit-tap-highlight-color: transparent;
+    }
+    .hit:hover, .hit:focus-visible, .hit:active { background: transparent; border: 0; outline: none; box-shadow: none; transform: none; }
+    .hit.found { pointer-events: none; }
+    .marker {
+      position: absolute; width: 58px; height: 58px; margin-left: -29px; margin-top: -29px; border: 4px solid #ff4f6f;
+      border-radius: 50%; box-shadow: 0 0 0 5px rgba(255,255,255,0.95); animation: pop .35s ease; pointer-events: none;
+    }
+    @keyframes pop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .progress { height: 14px; background: #e5def6; border-radius: 999px; overflow: hidden; margin: 16px 0 10px; }
+    .progress > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #30c5ff, var(--primary-2)); transition: width .25s ease; border-radius: inherit; }
+    .hint, .microcopy { color: var(--muted); font-size: 0.94rem; line-height: 1.5; }
+    .checklist { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 16px; }
+    .dot { height: 42px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-weight: 700; color: var(--muted); border: 1px solid rgba(92,45,145,0.08); }
+    .dot.found { background: rgba(22,124,67,0.12); color: var(--success); border-color: rgba(22,124,67,0.18); }
+    .cta-box { margin-top: 18px; padding: 18px; border-radius: 18px; background: linear-gradient(180deg, #f9f6ff 0%, #f1ebfe 100%); border: 1px solid rgba(92,45,145,0.08); }
+    .raffle { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(92,45,145,0.1); }
+    .raffle.visible { display: block; }
+    label { display: block; margin: 0 0 6px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(92,45,145,0.16); background: white; font: inherit; margin-bottom: 14px; }
+    input:focus, textarea:focus { outline: 3px solid var(--ring); border-color: var(--primary); }
+    .consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; color: var(--muted); font-size: 0.94rem; }
+    .consent input { width: 18px; height: 18px; margin: 3px 0 0; padding: 0; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    button, .mail-link {
+      appearance: none; border: 0; border-radius: 999px; padding: 14px 20px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    button:hover, .mail-link:hover { transform: translateY(-1px); }
+    .primary { background: linear-gradient(90deg, var(--primary), var(--primary-2)); color: white; }
+    .secondary { background: #ece4fb; color: var(--primary); }
+    .success-box, .warning-box {
+      border-radius: 16px; padding: 14px 16px; font-size: 0.95rem; line-height: 1.45; margin-top: 14px; display: none;
+    }
+    .success-box { background: rgba(22,124,67,0.1); color: var(--success); }
+    .warning-box { background: rgba(194,45,86,0.1); color: var(--danger); }
+    .success-box.visible, .warning-box.visible { display: block; }
+    @media (max-width: 980px) {
+      .status-bar { grid-template-columns: 1fr; }
+      .checklist { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Find the 7 Differences</h1>
+      <p>Spot all seven hidden changes in the Proximus-style illustration. Once you find them all, the raffle form unlocks so the contestant can enter the draw. <span id="timerDisplay">Time: 0:00</span></p>
+    </section>
+
+    <section class="layout">
+      <div class="game-panel">
+        <div class="status-bar">
+          <div class="stat"><span class="label">Differences found</span><span class="value" id="foundCount">0 / 7</span></div>
+          <div class="stat"><span class="label">Correct clicks</span><span class="value" id="clickCount">0</span></div>
+          <div class="stat"><span class="label">Time</span><span class="value" id="timerValue">0:00</span></div>
+        </div>
+
+        <div class="scene" id="scene">
+          <img src="https://user-gen-media-assets.s3.amazonaws.com/gemini_images/5356982a-a7b6-4bc1-b91f-2e76ff37ed5f.png" alt="Find the 7 differences illustration with two side-by-side Proximus-style scenes" />
+          <div class="hit-layer" id="hitLayer" aria-label="Interactive difference hotspots">
+            <button class="hit" data-id="1" data-left-x="14.5" data-right-x="64.2" data-y="43.7" style="left:0%;top:33.7%;width:100%;height:20%;" aria-label="Difference area 1"></button>
+            <button class="hit" data-id="2" data-left-x="33.1" data-right-x="82.1" data-y="45.8" style="left:25.1%;top:39.3%;width:65%;height:13%;" aria-label="Difference area 2"></button>
+            <button class="hit" data-id="3" data-left-x="43.9" data-right-x="93.3" data-y="28.2" style="left:36.4%;top:22.2%;width:63.6%;height:12%;" aria-label="Difference area 3"></button>
+            <button class="hit" data-id="4" data-left-x="9.4" data-right-x="59.2" data-y="76.8" style="left:2.9%;top:69.3%;width:62.8%;height:15%;" aria-label="Difference area 4"></button>
+            <button class="hit" data-id="5" data-left-x="14.2" data-right-x="66.4" data-y="72.6" style="left:7.2%;top:65.6%;width:66.2%;height:14%;" aria-label="Difference area 5"></button>
+            <button class="hit" data-id="6" data-left-x="34.1" data-right-x="83.4" data-y="66.9" style="left:15.1%;top:59.4%;width:84.9%;height:15%;" aria-label="Difference area 6"></button>
+            <button class="hit" data-id="7" data-left-x="4.2" data-right-x="55" data-y="51.1" style="left:0%;top:42.1%;width:100%;height:18%;" aria-label="Difference area 7"></button>
+          </div>
+          <div class="marker-layer" id="markerLayer"></div>
+        </div>
+
+        <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+        <p class="hint" id="gameMessage">Tip: when a difference is found, one circle appears on the left image and one on the right image.</p>
+
+        <div class="checklist" aria-label="Progress tracker">
+          <div class="dot" id="dot1">1</div>
+          <div class="dot" id="dot2">2</div>
+          <div class="dot" id="dot3">3</div>
+          <div class="dot" id="dot4">4</div>
+          <div class="dot" id="dot5">5</div>
+          <div class="dot" id="dot6">6</div>
+          <div class="dot" id="dot7">7</div>
+        </div>
+
+        <div class="cta-box raffle" id="raffleBox">
+          <h2 class="side-title">Raffle entry</h2>
+          <p class="microcopy">After all seven differences are found, the contestant can submit their details. This page prepares an email draft to sevibes@proximus.com.</p>
+
+          <form id="raffleForm">
+            <label for="fullName">Full name</label>
+            <input id="fullName" name="fullName" type="text" required />
+
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" required />
+
+            <label for="team">Team or department</label>
+            <input id="team" name="team" type="text" />
+
+            <label for="tieBreaker">Optional tie-breaker</label>
+            <textarea id="tieBreaker" name="tieBreaker" rows="3" placeholder="What was the trickiest difference?"></textarea>
+
+            <label class="consent"><input id="consent" type="checkbox" required /><span>I confirm I agree that my details may be used for this raffle administration.</span></label>
+
+            <div class="actions">
+              <button type="submit" class="primary">Prepare raffle email</button>
+              <a href="#" id="mailLink" class="mail-link secondary" style="display:none;">Open email app</a>
+            </div>
+          </form>
+
+          <div class="success-box" id="successBox">The raffle draft is ready. Time taken: <span id="finalTime"></span></div>
+          <div class="warning-box" id="warningBox">Automatic server-side email sending is not available in plain embedded HTML alone.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const hotspots = [{"id": 1, "leftX": 14.5, "rightX": 64.2, "y": 43.7, "width": 58, "height": 20}, {"id": 2, "leftX": 33.1, "rightX": 82.1, "y": 45.8, "width": 16, "height": 13}, {"id": 3, "leftX": 43.9, "rightX": 93.3, "y": 28.2, "width": 15, "height": 12}, {"id": 4, "leftX": 9.4, "rightX": 59.2, "y": 76.8, "width": 13, "height": 15}, {"id": 5, "leftX": 14.2, "rightX": 66.4, "y": 72.6, "width": 14, "height": 14}, {"id": 6, "leftX": 34.1, "rightX": 83.4, "y": 66.9, "width": 38, "height": 15}, {"id": 7, "leftX": 4.2, "rightX": 55, "y": 51.1, "width": 57, "height": 18}];
+    const total = 7;
+    const found = new Set();
+    let correctClicks = 0;
+    let startTime = 0;
+    let timerInterval = null;
+    let elapsed = 0;
+    let gameComplete = false;
+
+    const foundCount = document.getElementById('foundCount');
+    const clickCount = document.getElementById('clickCount');
+    const raffleState = document.getElementById('raffleState');
+    const progressBar = document.getElementById('progressBar');
+    const gameMessage = document.getElementById('gameMessage');
+    const raffleBox = document.getElementById('raffleBox');
+    const raffleForm = document.getElementById('raffleForm');
+    const successBox = document.getElementById('successBox');
+    const warningBox = document.getElementById('warningBox');
+    const mailLink = document.getElementById('mailLink');
+    const scene = document.getElementById('scene');
+    const hitLayer = document.getElementById('hitLayer');
+    const markerLayer = document.getElementById('markerLayer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerValue = document.getElementById('timerValue');
+    const finalTime = document.getElementById('finalTime');
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+      if (gameComplete || !startTime) return;
+      const now = Date.now();
+      elapsed = now - startTime;
+      const timeStr = formatTime(elapsed);
+      timerDisplay.textContent = `Time: ${timeStr}`;
+      timerValue.textContent = timeStr;
+    }
+
+    function startTimer() {
+      if (!startTime) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 250);
+      }
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      finalTime.textContent = formatTime(elapsed);
+    }
+
+    function updateUi() {
+      foundCount.textContent = `${found.size} / ${total}`;
+      clickCount.textContent = String(correctClicks);
+      progressBar.style.width = `${(found.size / total) * 100}%`;
+      raffleState.textContent = found.size === total ? 'Unlocked' : 'Locked';
+      raffleBox.classList.toggle('visible', found.size === total);
+      if (found.size === total && !gameComplete) {
+        gameComplete = true;
+        stopTimer();
+        gameMessage.textContent = `Great job — all 7 differences are found in ${formatTime(elapsed)}! The raffle form is now unlocked.`;
+        successBox.classList.add('visible');
+        mailLink.style.display = 'inline-block';
+      }
+    }
+
+    function createMarker(xPercent, yPercent) {
+      const marker = document.createElement('div');
+      marker.className = 'marker';
+      marker.style.left = `${xPercent}%`;
+      marker.style.top = `${yPercent}%`;
+      markerLayer.appendChild(marker);
+    }
+
+    function revealPair(btn) {
+      const leftX = Number(btn.dataset.leftX);
+      const rightX = Number(btn.dataset.rightX);
+      const y = Number(btn.dataset.y);
+      createMarker(leftX, y);
+      createMarker(rightX, y);
+    }
+
+    document.querySelectorAll('.hit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        startTimer();
+        const id = btn.dataset.id;
+        if (found.has(id)) return;
+        found.add(id);
+        correctClicks += 1;
+        btn.classList.add('found');
+        btn.disabled = true;
+        revealPair(btn);
+        document.getElementById(`dot${id}`).classList.add('found');
+        document.getElementById(`dot${id}`).textContent = '✓';
+        updateUi();
+      });
+    });
+
+    raffleForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (found.size !== total) return;
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const team = document.getElementById('team').value.trim();
+      const tieBreaker = document.getElementById('tieBreaker').value.trim();
+      const consent = document.getElementById('consent').checked;
+      if (!name || !email || !consent) {
+        warningBox.classList.add('visible');
+        successBox.classList.remove('visible');
+        return;
+      }
+      const timeStr = formatTime(elapsed);
+      const subject = encodeURIComponent('Raffle entry - Find the 7 Differences');
+      const body = encodeURIComponent(`Contestant raffle entry
+Name: ${name}
+Email: ${email}
+Team/Department: ${team || '-'}
+Time taken: ${timeStr}
+Differences found: 7/7
+Tie-breaker: ${tieBreaker || '-'}
+Consent confirmed: Yes`);
+      const href = `mailto:sevibes@proximus.com?subject=${subject}&body=${body}`;
+      mailLink.href = href;
+      window.location.href = href;
+      successBox.classList.add('visible');
+      warningBox.classList.add('visible');
+    });
+
+    updateUi();
+  </script>
+</body>
+</html>
