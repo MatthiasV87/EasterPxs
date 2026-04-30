@@ -1,406 +1,183 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easter Find the 7 Differences</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-      min-height: 100vh;
-    }
-    h1 {
-      text-align: center;
-      color: #8B4513;
-      margin-bottom: 10px;
-      font-size: clamp(1.8em, 5vw, 3em);
-    }
-    .subtitle {
-      text-align: center;
-      color: #D2691E;
-      margin-bottom: 30px;
-      font-weight: 500;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .stat {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    .tip {
-      background: rgba(255,255,255,0.9);
-      border-left: 5px solid #FFA500;
-      padding: 15px;
-      margin-bottom: 30px;
-      border-radius: 8px;
-      font-style: italic;
-    }
-    .game-container {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-    .image-wrapper {
-      position: relative;
-      width: 48%;
-      max-width: 500px;
-      aspect-ratio: 1;
-    }
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    }
-    .spot {
-      position: absolute;
-      border: 3px solid transparent;
-      border-radius: 50%;
-      cursor: crosshair;
-      transition: all 0.2s ease;
-      z-index: 10;
-    }
-    .spot:hover { 
-      border-color: #FFD700;
-      background: rgba(255,215,0,0.2);
-      transform: scale(1.1);
-    }
-    .spot.found {
-      border-color: #32CD32;
-      background: rgba(50,205,50,0.3);
-      animation: pulse 0.6s ease-out;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
-    .numbers {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      margin: 20px 0;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .number {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.2em;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
-    }
-    .number.found {
-      background: linear-gradient(135deg, #56ab2f, #a8e6cf);
-      transform: scale(1.1);
-    }
-    .raffle-section {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-      max-width: 600px;
-      margin: 0 auto;
-      display: none;
-    }
-    .raffle-section h2 {
-      color: #8B4513;
-      margin-top: 0;
-    }
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    label { 
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 600;
-      color: #555;
-    }
-    input[type="text"], input[type="email"] {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-    input:focus {
-      outline: none;
-      border-color: #FFA500;
-    }
-    .send-btn {
-      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 1.1em;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      transition: all 0.3s;
-    }
-    .send-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255,107,107,0.4);
-    }
-    .success {
-      background: #d4edda;
-      color: #155724;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #c3e6cb;
-      margin-top: 20px;
-    }
-    @media (max-width: 768px) {
-      .game-container { flex-direction: column; align-items: center; }
-      .image-wrapper { width: 95%; }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Spin the Wheel – Proximus</title>
+
+<style>
+:root{
+  --px-purple:#5C2D91;
+  --px-magenta:#FF418C;
+  --px-turquoise:#66D2CC;
+  --px-blue:#00BCEE;
+  --px-red:#EE2E5D;
+  --px-white:#ffffff;
+  --px-black:#111111;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,rgba(92,45,145,.15),rgba(255,65,140,.12));
+  font-family: Verdana, Arial, sans-serif;
+}
+
+.app{
+  width:min(1100px,96vw);
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 20px 45px rgba(0,0,0,.2);
+}
+
+.wheel-wrap{
+  position:relative;
+  width:520px;
+  margin:auto;
+}
+
+canvas{
+  width:100%;
+  border-radius:50%;
+}
+
+/* ✅ PIJL RECHTS – WIJST NAAR BINNEN (naar links) */
+.pointer{
+  --bx:8px;
+  position:absolute;
+  right:-18px;
+  top:50%;
+  transform:translateY(-50%);
+  width:0;height:0;
+  border-top:16px solid transparent;
+  border-bottom:16px solid transparent;
+  border-right:34px solid var(--px-red);
+}
+
+/* ✅ Bounce animatie */
+@keyframes pointerBounce{
+  0%   { transform:translateY(-50%) translateX(0); }
+  40%  { transform:translateY(-50%) translateX(calc(var(--bx) * -1)); }
+  100% { transform:translateY(-50%) translateX(0); }
+}
+.pointer.bounce{
+  animation:pointerBounce .18s ease-out;
+}
+</style>
 </head>
+
 <body>
-  <h1>🐣 Easter Find the 7 Differences 🐣</h1>
-  <p class="subtitle">Spot all seven hidden changes. Once found, unlock the raffle entry!</p>
 
-  <div class="stats">
-    <div class="stat">
-      <div style="font-size: 2em; color: #FF6B6B;">0</div>
-      <div>Differences found / 7</div>
-    </div>
-    <div class="stat">
-      <div style="font-size: 2em; color: #4ECDC4;">0</div>
-      <div>Correct clicks</div>
-    </div>
-    <div class="stat">
-      <div style="font-size: 2em; color: #45B7D1;" id="timer">0:00</div>
-      <div>Time</div>
-    </div>
+<div class="app">
+  <div class="wheel-wrap">
+    <div class="pointer" id="pointer"></div>
+    <canvas id="wheel" width="900" height="900"></canvas>
   </div>
 
-  <div class="tip">
-    💡 Tip: Click on the differences you spot. Each correct find marks both sides of the image!
+  <div style="text-align:center;margin-top:16px">
+    <button onclick="spin()">🎡 SPIN</button>
   </div>
 
-  <div class="game-container">
-    <div class="image-wrapper">
-      <img id="img-left" src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20left.png?raw=true" alt="Left">
-    </div>
-    <div class="image-wrapper">
-      <img id="img-right" src="https://github.com/MatthiasV87/EasterPxs/blob/main/image%20right.png?raw=true" alt="Right">
-    </div>
+  <div id="result"
+       style="margin-top:14px;text-align:center;font-weight:bold;color:#5C2D91">
   </div>
+</div>
 
-  <div class="numbers" id="numbers">
-    <!-- Numbers 1-7 generated by JS -->
-  </div>
+<script>
+const names=[
+"WIJCKMANS Herbert","PACCHIONI Adriano","VERRYCKT Anneleen","CAPOZZI Benjamin",
+"THORPE Cindy","VAN GEEM Jan","MILOSAVLJEVIC Jasmina","VERHEYDE Jasper",
+"LALLEMANT Jérôme","DAVREUX Laetitia","VERRYCKT Liesbeth","DE VROE Marijke",
+"LEYERS Sabrina","LIBERT Sophie","WATHY‑LEBOUX‑AMORY Sylvie",
+"VAN DEN BOSSCHE Tim","VAN CAMP Viona","FIERS Marieke","DEMEYERE Burt",
+"DUMOULIN Christophe","POSMAN Jessica","LAURENT Julie","LISI Laura",
+"STOQUART Ludovic","LEDIEU Mike","JANS Sander","FOERIER Sigried",
+"VERMEIREN Thomas","VAN DEN BOSSCHE Tim","VAN CAMP Viona"
+];
 
-  <div class="raffle-section" id="raffle">
-    <h2>🎉 All seven found! Enter the raffle</h2>
-    <p>This page will open an email draft to <strong>sevibes@proximus.com</strong> with your solve time.</p>
-    
-    <div class="form-group">
-      <label for="name">Your name *</label>
-      <input type="text" id="name" required>
-    </div>
-    <div class="form-group">
-      <label for="email">Your email *</label>
-      <input type="email" id="email" required>
-    </div>
-    <div class="form-group">
-      <label for="phone">Phone (optional)</label>
-      <input type="text" id="phone">
-    </div>
-    
-    <button class="send-btn" onclick="sendRaffleEntry()">
-      📧 Send Easter Raffle Entry
-    </button>
-    
-    <div class="success" id="success" style="display: none;">
-      ✓ Email draft opened with your entry and solve time!
-    </div>
-  </div>
+const colors=["#5C2D91","#FF418C","#66D2CC","#00BCEE","#EE2E5D"];
+const canvas=document.getElementById("wheel");
+const ctx=canvas.getContext("2d");
+const pointer=document.getElementById("pointer");
+const result=document.getElementById("result");
+const R=canvas.width/2;
 
-  <script>
-    // Game state
-    let gameState = {
-      found: new Set(),
-      total: 7,
-      startTime: null,
-      timerInterval: null,
-      elapsed: 0
-    };
+let angle=0;
+let spinning=false;
 
-    const TARGET_EMAIL = 'sevibes@proximus.com';
+/* ✅ PIJL RECHTS = 0 graden */
+const POINTER_ANGLE = 0;
 
-    // Difference hotspots - ADJUST THESE TO YOUR ACTUAL DIFFERENCES
-    const differences = [
-      { left: {x:15, y:30, size:8}, right: {x:15, y:30, size:8}, num: 1 },
-      { left: {x:72, y:25, size:8}, right: {x:72, y:25, size:8}, num: 2 },
-      { left: {x:40, y:55, size:8}, right: {x:40, y:55, size:8}, num: 3 },
-      { left: {x:60, y:70, size:8}, right: {x:60, y:70, size:8}, num: 4 },
-      { left: {x:75, y:40, size:8}, right: {x:75, y:40, size:8}, num: 5 },
-      { left: {x:25, y:60, size:8}, right: {x:25, y:60, size:8}, num: 6 },
-      { left: {x:55, y:20, size:8}, right: {x:55, y:20, size:8}, num: 7 }
-    ];
+function drawWheel(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const arc=2*Math.PI/names.length;
 
-    function init() {
-      createHotspots();
-      createNumbers();
-      startTimer();
+  names.forEach((n,i)=>{
+    const s=angle+i*arc;
+    ctx.beginPath();
+    ctx.moveTo(R,R);
+    ctx.arc(R,R,R,s,s+arc);
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(R,R);
+    ctx.rotate(s+arc/2);
+    ctx.fillStyle="#fff";
+    ctx.font="bold 20px Verdana";
+    ctx.textAlign="right";
+    ctx.fillText(n,R-20,6);
+    ctx.restore();
+  });
+}
+
+function indexUnderPointer(){
+  const arc=2*Math.PI/names.length;
+  const rel=((POINTER_ANGLE-angle)%(2*Math.PI)+(2*Math.PI))%(2*Math.PI);
+  return Math.floor(rel/arc);
+}
+
+function bounce(px){
+  pointer.style.setProperty("--bx",px+"px");
+  pointer.classList.remove("bounce");
+  void pointer.offsetWidth;
+  pointer.classList.add("bounce");
+}
+
+function spin(){
+  if(spinning) return;
+  spinning=true;
+
+  const start=angle;
+  const extraSpins=6+Math.random()*4;
+  const target=start + extraSpins*2*Math.PI + Math.random()*2*Math.PI;
+  const t0=performance.now();
+  const duration=4200;
+
+  function animate(t){
+    const p=Math.min((t-t0)/duration,1);
+    const ease=1-Math.pow(1-p,3); // natuurlijke vertraging
+    angle=start+(target-start)*ease;
+    drawWheel();
+    bounce(3);
+
+    if(p<1){
+      requestAnimationFrame(animate);
+    }else{
+      const winnerIndex=indexUnderPointer();
+      bounce(8);
+      result.innerHTML="🎉 Winnaar: <b>"+names[winnerIndex]+"</b>";
+      spinning=false;
     }
+  }
+  requestAnimationFrame(animate);
+}
 
-    function createHotspots() {
-      const leftImg = document.getElementById('img-left');
-      const rightImg = document.getElementById('img-right');
-      
-      differences.forEach((diff, i) => {
-        // Left spots
-        const leftSpot = document.createElement('div');
-        leftSpot.className = 'spot';
-        leftSpot.dataset.id = i;
-        Object.assign(leftSpot.style, {
-          left: `${diff.left.x}%`,
-          top: `${diff.left.y}%`,
-          width: `${diff.left.size}%`,
-          height: `${diff.left.size}%`
-        });
-        leftImg.parentNode.appendChild(leftSpot);
+drawWheel();
+</script>
 
-        // Right spots
-        const rightSpot = document.createElement('div');
-        rightSpot.className = 'spot';
-        rightSpot.dataset.id = i;
-        Object.assign(rightSpot.style, {
-          left: `${diff.right.x}%`,
-          top: `${diff.right.y}%`,
-          width: `${diff.right.size}%`,
-          height: `${diff.right.size}%`
-        });
-        rightImg.parentNode.appendChild(rightSpot);
-
-        // Click handler
-        [leftSpot, rightSpot].forEach(spot => {
-          spot.addEventListener('click', (e) => {
-            e.stopPropagation();
-            markFound(i);
-          });
-        });
-      });
-    }
-
-    function createNumbers() {
-      const container = document.getElementById('numbers');
-      for(let i = 1; i <= 7; i++) {
-        const num = document.createElement('div');
-        num.className = 'number';
-        num.textContent = i;
-        num.dataset.id = i-1;
-        num.addEventListener('click', () => markFound(i-1));
-        container.appendChild(num);
-      }
-    }
-
-    function markFound(id) {
-      if (gameState.found.has(id)) return;
-
-      gameState.found.add(id);
-      const count = gameState.found.size;
-
-      // Mark spots
-      document.querySelectorAll(`.spot[data-id="${id}"]`).forEach(spot => {
-        spot.classList.add('found');
-      });
-
-      // Mark number
-      document.querySelector(`.number[data-id="${id}"]`).classList.add('found');
-
-      // Update stats
-      document.querySelector('.stat div:first-child').textContent = count;
-      
-      if (count === gameState.total) {
-        endGame();
-      }
-    }
-
-    function startTimer() {
-      gameState.startTime = Date.now();
-      gameState.timerInterval = setInterval(updateTimer, 100);
-    }
-
-    function updateTimer() {
-      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-      const minutes = Math.floor(elapsed / 60);
-      const seconds = elapsed % 60;
-      document.getElementById('timer').textContent = 
-        `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    function endGame() {
-      clearInterval(gameState.timerInterval);
-      document.getElementById('raffle').style.display = 'block';
-      document.querySelector('.subtitle').textContent = 
-        `🎉 All differences found in ${document.getElementById('timer').textContent}!`;
-    }
-
-    function sendRaffleEntry() {
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      
-      if (!name || !email) {
-        alert('Please fill name and email');
-        return;
-      }
-
-      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-      const now = new Date().toLocaleString('nl-BE', {timeZone: 'Europe/Brussels'});
-      
-      const subject = `Easter Raffle Entry - ${elapsed}s`;
-      const body = `Easter Spot-the-Difference Raffle Entry
-
-Name: ${name}
-Email: ${email}
-${phone ? `Phone: ${phone}` : ''}
-Solve time: ${elapsed} seconds (${document.getElementById('timer').textContent})
-Completed: ${now}
-
-Great job finding all 7 differences!`;
-
-      const mailto = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailto;
-      
-      document.getElementById('success').style.display = 'block';
-    }
-
-    // Start when images load
-    window.addEventListener('load', init);
-  </script>
 </body>
 </html>
